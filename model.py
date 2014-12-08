@@ -34,8 +34,7 @@ class EsQuery(object):
 
 class EsQueryResult(object):
 
-    def __init__(self, data):
-        self.data = data
+    def __init__(self):
         # fields would be set from facets (i think)
         self.fields = [
             "@version",
@@ -55,11 +54,10 @@ class EsQueryResult(object):
             "message",
         ]
 
-    @classmethod
-    def fetch(cls):
-        with open("example_logs.json") as fp:
+    def fetch(self):
+        with open("tests/example_logs.json") as fp:
             content = json.load(fp)
-            return cls(content)
+            self.data = content
 
     def __len__(self):
         return len(self.data["hits"]["hits"])
@@ -80,28 +78,35 @@ class EsQueryResult(object):
 
 class QueryResultListModel(QAbstractItemModel):
 
-    def __init__(self, query_result):
+    def __init__(self, query_result=None):
         super(QueryResultListModel, self).__init__()
         self.query_result = query_result
 
-    def rowCount(self, index):
-        if index.isValid():
+    def rowCount(self, parent=QModelIndex()):
+        if parent.isValid():
             return 0
-        return len(self.query_result)
+        if self.query_result:
+            return len(self.query_result)
+        return 0
 
     def index(self, row, column, parent):
-        return QAbstractItemModel.createIndex(self, row, column, None)
+        return self.createIndex(row, column, None)
 
     def parent(self, index):
         return QModelIndex()
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=QModelIndex()):
         if parent.isValid():
             return 0
-        return len(self.query_result.fields)
+        if self.query_result:
+            return len(self.query_result.fields)
+        return 0
 
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
+            return None
+
+        if not self.query_result:
             return None
 
         if role == Qt.DisplayRole:
@@ -117,6 +122,8 @@ class QueryResultListModel(QAbstractItemModel):
         return None
 
     def headerData(self, column, orientation, role=Qt.DisplayRole):
+        if not self.query_result:
+            return None
         if role == Qt.DisplayRole:
             return self.query_result.fields[column]
         return None
