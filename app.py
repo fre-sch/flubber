@@ -105,6 +105,21 @@ class QueryResultListWidget(OSXItemActivationFix, QTreeView):
         self._header_menu.exec_(global_pos)
 
 
+class QueryResultsWidget(QWidget):
+
+    def __init__(self):
+        super(QueryResultsWidget, self).__init__()
+        layout = QVBoxLayout()
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+        self.list_view = QueryResultListWidget()
+        self.status_bar = QStatusBar()
+        self.status_bar.setSizeGripEnabled(False)
+        layout.addWidget(self.list_view)
+        layout.addWidget(self.status_bar)
+
+
 class QueryTermsWidget(OSXItemActivationFix, QListWidget):
 
     def __init__(self):
@@ -169,7 +184,8 @@ if __name__ == '__main__':
 
     window = MainWindow()
     query_terms_view = QueryTermsWidget()
-    query_results_view = QueryResultListWidget()
+    query_results = QueryResultsWidget()
+    query_results_view = query_results.list_view
     query_result_view = QueryResultWidget()
     sp = window.centralWidget()
 
@@ -188,7 +204,7 @@ if __name__ == '__main__':
         lambda: settings.save_query_results_view(query_results_view))
 
     sp.addWidget(query_terms_view)
-    sp.addWidget(query_results_view)
+    sp.addWidget(query_results)
     sp.addWidget(query_result_view)
     sp.setCollapsible(0, False)
     sp.setCollapsible(1, False)
