@@ -35,29 +35,16 @@ class EsQuery(object):
 class EsQueryResult(object):
 
     def __init__(self):
-        # fields would be set from facets (i think)
-        self.fields = [
-            "@version",
-            "name",
-            "type",
-            "@timestamp",
-            "asctime",
-            "funcName",
-            "host",
-            "pathname",
-            "lineno",
-            "env",
-            "request_id",
-            "exc_text",
-            "reservation_id",
-            "levelname",
-            "message",
-        ]
+        self.fields = []
 
     def fetch(self):
         with open("tests/example_logs.json") as fp:
             content = json.load(fp)
             self.data = content
+        fields = set([])
+        for hit in self.data["hits"]["hits"]:
+            fields.update(hit["_source"].keys())
+        self.fields = sorted(fields)
 
     def __len__(self):
         return len(self.data["hits"]["hits"])
