@@ -1,4 +1,5 @@
 env
+venv
 *.pyc
 example_logs.json
 

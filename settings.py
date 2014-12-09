@@ -76,3 +76,16 @@ def save_query_results_view(view):
                 with s.group_(field):
                     s.setValue("size", header.sectionSize(i))
                     s.setValue("hidden", header.isSectionHidden(i))
+
+
+def restore_last_query(editor):
+    s = Settings()
+    with s.group_("last_query"):
+        text = s.value("text").toString()
+        editor.setPlainText(text)
+
+
+def save_last_query(editor):
+    s = Settings()
+    with s.group_("last_query"):
+        s.setValue("text", editor.toPlainText())

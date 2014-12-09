@@ -176,6 +176,7 @@ if __name__ == '__main__':
         settings.save_main_window(window),
         settings.save_splitter(sp),
         settings.save_query_results_view(results_list),
+        settings.save_last_query(query_editor),
     ))
 
     sp.addWidget(query_editor)
@@ -192,5 +193,7 @@ if __name__ == '__main__':
     settings.restore_main_window(window)
     settings.restore_splitter(sp)
     settings.restore_query_results_view(results_list)
+    settings.restore_last_query(query_editor)
+
     window.show()
     sys.exit(app.exec_())

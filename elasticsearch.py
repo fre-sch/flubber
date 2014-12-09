@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import shlex
+import requests
 
 
 class Service(object):
@@ -9,15 +10,21 @@ class Service(object):
         self.url = url
 
     def query(self, query):
-        with open("tests/example_logs.json") as fp:
-            content = json.load(fp)
-            return Result(content)
+        response = requests.post(self.url + "/_search",
+                                 json=query.to_json())
+        return Result(response.json())
 
 
 class Query(object):
 
     def __init__(self, raw=""):
-        self.raw = raw
+        self.raw = "\n".join(
+            line.split("#", 1)[0]
+            for line in raw.split("\n")
+        )
+
+    def to_json(self):
+        return json.loads(self.raw)
 
     @classmethod
     def parse(cls, value):
