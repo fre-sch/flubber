@@ -62,9 +62,12 @@ class ResultListView(OSXItemActivationFix, QTreeView):
         super(ResultListView, self).__init__()
         self.field_config = dict()
         self.setAlternatingRowColors(1)
+        self.setUniformRowHeights(1)
+        self.setSortingEnabled(True)
         FontFixer.set_monospace_font(self)
 
-        model = QueryResultListModel()
+        model = QueryResultListModel(
+            elasticsearch.Service("http://localhost:9200/"))
         self.setModel(model)
         header = self.header()
         header.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -82,9 +85,11 @@ class ResultListView(OSXItemActivationFix, QTreeView):
             header.setSectionHidden(i, hidden)
             header.resizeSection(i, size)
 
-    def toggle_column(self, i):
+    def toggle_column(self, i, field):
         def handler(toggled):
             self.header().setSectionHidden(i, not toggled)
+            size = int(max(50, self.header().sectionSize(i)))
+            self.field_config[field] = (size, not toggled)
         return handler
 
     def init_header_menu(self):
@@ -97,7 +102,7 @@ class ResultListView(OSXItemActivationFix, QTreeView):
             action = QAction(field, self._header_menu)
             action.setCheckable(True)
             action.setChecked(field_visible)
-            action.toggled.connect(self.toggle_column(i))
+            action.toggled.connect(self.toggle_column(i, field))
             self._header_menu.addAction(action)
 
     def show_header_menu(self, pos):
@@ -142,11 +147,11 @@ class ResultDetailWidget(QPlainTextEdit):
         FontFixer.set_monospace_font(self)
 
 
-def run_query_handler(query_editor, model, es_service):
+def run_query_handler(query_editor, model):
     def handler():
         query_text = unicode(query_editor.toPlainText())
         query = elasticsearch.Query(query_text)
-        model.update_result(es_service.query(query))
+        model.set_query(query)
     return handler
 
 
@@ -159,8 +164,6 @@ def update_result_details(results_model, detail_widget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
-    es_service = elasticsearch.Service("http://localhost:9200/")
 
     window = MainWindow()
     query_editor = QueryEditor()
@@ -176,7 +179,7 @@ if __name__ == '__main__':
     )
 
     window.run_query_shortcut.activated.connect(
-        run_query_handler(query_editor, results_list.model(), es_service)
+        run_query_handler(query_editor, results_list.model())
     )
 
     window.closeSignal.connect(lambda:(

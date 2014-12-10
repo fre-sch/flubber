@@ -4,10 +4,17 @@ from PyQt4.QtGui import *
 
 
 class QueryResultListModel(QAbstractItemModel):
+    sort_dir = {
+        Qt.AscendingOrder: "asc",
+        Qt.DescendingOrder: "desc",
+    }
 
-    def __init__(self, result=None):
+    def __init__(self, service):
         super(QueryResultListModel, self).__init__()
-        self.result = result
+        self.service = service
+        self.query = None
+        self.result = None
+        self._sort = None
 
     def rowCount(self, parent=QModelIndex()):
         if parent.isValid():
@@ -55,9 +62,31 @@ class QueryResultListModel(QAbstractItemModel):
             return self.result.fields[column]
         return None
 
-    def update_result(self, result):
+    def sort(self, column, order=Qt.AscendingOrder):
+        print "sort", column, order
+        sort = {
+            Qt.AscendingOrder: "asc",
+            Qt.DescendingOrder: "desc",
+        }
+        self._sort = (column, order)
+        self.fetch_result()
+
+    def set_query(self, query):
+        self.query = query
+        self.fetch_result()
+
+    def fetch_result(self):
+        if not self.query:
+            return
+
+        if self.result:
+            sort_column, sort_dir = self._sort
+            sort_field = str(self.headerData(sort_column, Qt.Horizontal))
+            sort_dir = self.sort_dir[sort_dir]
+            self.query.sort(sort_field, sort_dir)
+
         self.beginResetModel()
-        self.result = result
+        self.result = self.service.fetch(self.query)
         self.reset()
         self.endResetModel()
 

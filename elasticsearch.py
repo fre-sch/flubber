@@ -9,7 +9,7 @@ class Service(object):
     def __init__(self, url):
         self.url = url
 
-    def query(self, query):
+    def fetch(self, query):
         response = requests.post(self.url + "/_search",
                                  json=query.to_json())
         return Result(response.json())
@@ -18,13 +18,30 @@ class Service(object):
 class Query(object):
 
     def __init__(self, raw=""):
-        self.raw = "\n".join(
+        raw = json.loads("\n".join(
             line.split("#", 1)[0]
             for line in raw.split("\n")
+        ))
+        self.data = dict(
+            query=raw,
+            sort=dict(),
+            size=100,
         )
 
+    def size(self, size):
+        self.data["size"] = size
+        return self
+
+    def from_(self, from_):
+        self.data["from"] = from_
+        return self
+
+    def sort(self, field, dir):
+        self.data["sort"] = {field: dir}
+        return self
+
     def to_json(self):
-        return json.loads(self.raw)
+        return self.data
 
     @classmethod
     def parse(cls, value):
