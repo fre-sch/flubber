@@ -55,6 +55,13 @@ class Result(object):
         self.data = data
         self.fields = self.get_all_fields(data)
 
+    @property
+    def total(self):
+        try:
+            return self.data["hits"]["total"]
+        except (AttributeError, KeyError):
+            return 0
+
     def get_all_fields(self, data):
         fields = set([])
         for hit in data["hits"]["hits"]:

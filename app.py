@@ -118,7 +118,14 @@ class ResultsWidget(QWidget):
         self.status_bar.setSizeGripEnabled(False)
         layout.addWidget(self.list_view)
         layout.addWidget(self.status_bar)
+        model = self.list_view.model()
+        model.modelReset.connect(self.update_status_bar)
 
+    def update_status_bar(self):
+        model = self.list_view.model()
+        self.status_bar.showMessage(
+            "total: {}".format(model.result.total)
+        )
 
 class QueryEditor(QPlainTextEdit):
 
