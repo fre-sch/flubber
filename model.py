@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtNetwork import *
+import elasticsearch
+from functools import partial
+import json
+import os
+
+
+j = os.path.join
 
 
 class QueryResultListModel(QAbstractItemModel):
@@ -9,9 +17,10 @@ class QueryResultListModel(QAbstractItemModel):
         Qt.DescendingOrder: "desc",
     }
 
-    def __init__(self, service):
+    def __init__(self, service_url):
         super(QueryResultListModel, self).__init__()
-        self.service = service
+        self.service_url = QUrl(j(service_url, "_search"))
+        self.qnetwork = QNetworkAccessManager(self)
         self.query = None
         self.result = None
         self._sort = None
@@ -63,7 +72,6 @@ class QueryResultListModel(QAbstractItemModel):
         return None
 
     def sort(self, column, order=Qt.AscendingOrder):
-        print "sort", column, order
         sort = {
             Qt.AscendingOrder: "asc",
             Qt.DescendingOrder: "desc",
@@ -85,8 +93,17 @@ class QueryResultListModel(QAbstractItemModel):
             sort_dir = self.sort_dir[sort_dir]
             self.query.sort(sort_field, sort_dir)
 
+        request = QNetworkRequest(self.service_url)
+        request.setHeader(QNetworkRequest.ContentTypeHeader, "application/json")
+        reply = self.qnetwork.post(request, self.query_to_bytearray())
+        reply.readyRead.connect(partial(self._update_result, reply))
+
+    def _update_result(self, reply):
+        data = reply.readAll().data()
         self.beginResetModel()
-        self.result = self.service.fetch(self.query)
+        self.result = elasticsearch.Result(data)
         self.reset()
         self.endResetModel()
 
+    def query_to_bytearray(self):
+        return QByteArray.fromRawData(json.dumps(self.query.data))

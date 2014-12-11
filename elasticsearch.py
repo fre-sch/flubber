@@ -1,18 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
 import shlex
-import requests
-
-
-class Service(object):
-
-    def __init__(self, url):
-        self.url = url
-
-    def fetch(self, query):
-        response = requests.post(self.url + "/_search",
-                                 json=query.to_json())
-        return Result(response.json())
 
 
 class Query(object):
@@ -40,9 +28,6 @@ class Query(object):
         self.data["sort"] = {field: dir}
         return self
 
-    def to_json(self):
-        return self.data
-
     @classmethod
     def parse(cls, value):
         parts = shlex.split(value)
@@ -69,8 +54,8 @@ class Query(object):
 class Result(object):
 
     def __init__(self, data):
-        self.data = data
-        self.fields = self.get_all_fields(data)
+        self.data = json.loads(data)
+        self.fields = self.get_all_fields(self.data)
 
     @property
     def total(self):
@@ -80,13 +65,19 @@ class Result(object):
             return 0
 
     def get_all_fields(self, data):
-        fields = set([])
-        for hit in data["hits"]["hits"]:
-            fields.update(hit["_source"].keys())
-        return sorted(fields)
+        try:
+            fields = set([])
+            for hit in data["hits"]["hits"]:
+                fields.update(hit["_source"].keys())
+            return sorted(fields)
+        except KeyError:
+            return []
 
     def __len__(self):
-        return len(self.data["hits"]["hits"])
+        try:
+            return len(self.data["hits"]["hits"])
+        except KeyError:
+            return 0
 
     def __getitem__(self, key):
         return self.data["hits"]["hits"][key]

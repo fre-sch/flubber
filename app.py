@@ -66,8 +66,7 @@ class ResultListView(OSXItemActivationFix, QTreeView):
         self.setSortingEnabled(True)
         FontFixer.set_monospace_font(self)
 
-        model = QueryResultListModel(
-            elasticsearch.Service("http://localhost:9200/"))
+        model = QueryResultListModel("http://localhost:9200")
         self.setModel(model)
         header = self.header()
         header.setContextMenuPolicy(Qt.CustomContextMenu)
