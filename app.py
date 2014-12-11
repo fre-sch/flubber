@@ -7,6 +7,8 @@ from collections import OrderedDict
 from model import QueryResultListModel
 import settings
 import elasticsearch
+from functools import partial
+import json
 
 
 class FontFixer(object):
@@ -145,19 +147,29 @@ class ResultDetailWidget(QPlainTextEdit):
         self.setReadOnly(True)
         FontFixer.set_monospace_font(self)
 
+    def update(self, model, current, previous):
+        data = model.data(current, Qt.EditRole)
+        self.setPlainText(data)
+
+
+class ResultFieldWidget(QPlainTextEdit):
+
+    def __init__(self):
+        super(ResultFieldWidget, self).__init__()
+        self.setReadOnly(True)
+        FontFixer.set_monospace_font(self)
+        self.field = "message"
+
+    def update(self, model, current, previous):
+        data = json.loads(model.data(current, Qt.EditRole))
+        self.setPlainText(data.get(self.field))
+
 
 def run_query_handler(query_editor, model):
     def handler():
         query_text = unicode(query_editor.toPlainText())
         query = elasticsearch.Query(query_text)
         model.set_query(query)
-    return handler
-
-
-def update_result_details(results_model, detail_widget):
-    def handler(current, previous):
-        data = results_model.data(current, Qt.EditRole)
-        detail_widget.setPlainText(data)
     return handler
 
 
@@ -168,13 +180,19 @@ if __name__ == '__main__':
     query_editor = QueryEditor()
     query_results = ResultsWidget()
     results_list = query_results.list_view
-    result_detail_view = ResultDetailWidget()
     sp = window.centralWidget()
 
+    result_detail_view = ResultDetailWidget()
+    result_field_view = ResultFieldWidget()
+    tabview = QTabWidget()
+    tabview.addTab(result_detail_view, "Result")
+    tabview.addTab(result_field_view, "Field")
+
     results_list.selectionModel().currentChanged.connect(
-        update_result_details(
-            results_list.model(), result_detail_view
-        )
+        partial(result_detail_view.update, results_list.model())
+    )
+    results_list.selectionModel().currentChanged.connect(
+        partial(result_field_view.update, results_list.model())
     )
 
     window.run_query_shortcut.activated.connect(
@@ -190,7 +208,7 @@ if __name__ == '__main__':
 
     sp.addWidget(query_editor)
     sp.addWidget(query_results)
-    sp.addWidget(result_detail_view)
+    sp.addWidget(tabview)
     sp.setCollapsible(0, False)
     sp.setCollapsible(1, False)
     sp.setCollapsible(2, False)
