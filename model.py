@@ -5,10 +5,6 @@ from PyQt4.QtNetwork import *
 import elasticsearch
 from functools import partial
 import json
-import os
-
-
-j = os.path.join
 
 
 class QueryResultListModel(QAbstractItemModel):
@@ -19,7 +15,7 @@ class QueryResultListModel(QAbstractItemModel):
 
     def __init__(self, service_url):
         super(QueryResultListModel, self).__init__()
-        self.service_url = QUrl(j(service_url, "_search"))
+        self.service_url = QUrl(service_url + "/_search")
         self.qnetwork = QNetworkAccessManager(self)
         self.query = None
         self.result = None
