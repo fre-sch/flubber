@@ -28,6 +28,7 @@ class Settings(QSettings):
 def restore_main_window(window):
     s = Settings()
     with s.group_("MainWindow"):
+        window.restoreState(s.value("state", "").toByteArray())
         window.resize(
             s.value("size", QSize(600, 400)).toSize()
         )
@@ -36,20 +37,8 @@ def restore_main_window(window):
 def save_main_window(window):
     s = Settings()
     with s.group_("MainWindow"):
+        s.setValue("state", window.saveState())
         s.setValue("size", window.size())
-
-
-def restore_splitter(splitter):
-    s = Settings()
-    with s.group_("splitter"):
-        state = s.value("state", "").toByteArray()
-        splitter.restoreState(state)
-
-
-def save_splitter(splitter):
-    s = Settings()
-    with s.group_("splitter"):
-        s.setValue("state", splitter.saveState())
 
 
 def restore_query_results_view(view):

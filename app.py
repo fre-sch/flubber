@@ -43,9 +43,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setContentsMargins(4, 4, 4, 4)
-        splitter = QSplitter()
-        splitter.setOrientation(Qt.Vertical)
-        self.setCentralWidget(splitter)
         self.run_query_shortcut = QShortcut(
             QKeySequence.fromString("Ctrl+R"), self)
 
@@ -177,17 +174,41 @@ def run_query_handler(query_editor, model):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
+    with open("./app.css") as fp:
+        app.setStyleSheet(fp.read())
+
     window = MainWindow()
-    query_editor = QueryEditor()
     query_results = ResultsWidget()
     results_list = query_results.list_view
-    sp = window.centralWidget()
+    window.setCentralWidget(query_results)
+
+    query_editor = QueryEditor()
+    dock_widget = QDockWidget("Query", window)
+    dock_widget.setObjectName("query_editor")
+    dock_widget.setWidget(query_editor)
+    dock_widget.setAllowedAreas(
+        Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
+        | Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
+    window.addDockWidget(Qt.TopDockWidgetArea, dock_widget)
 
     result_detail_view = ResultDetailWidget()
+    dock_widget = QDockWidget("Details", window)
+    dock_widget.setObjectName("details_dock")
+    dock_widget.setWidget(result_detail_view)
+    dock_widget.setAllowedAreas(
+        Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
+        | Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
+    window.addDockWidget(Qt.BottomDockWidgetArea, dock_widget)
+
     result_field_view = ResultFieldWidget()
-    tabview = QTabWidget()
-    tabview.addTab(result_detail_view, "Result")
-    tabview.addTab(result_field_view, "Field")
+    dock_widget = QDockWidget("Field", window)
+    dock_widget.setObjectName("field_dock")
+    dock_widget.setWidget(result_field_view)
+    dock_widget.setAllowedAreas(
+        Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
+        | Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
+    window.addDockWidget(Qt.BottomDockWidgetArea, dock_widget)
+
 
     results_list.selectionModel().currentChanged.connect(
         partial(result_detail_view.update, results_list.model())
@@ -202,24 +223,11 @@ if __name__ == '__main__':
 
     window.closeSignal.connect(lambda:(
         settings.save_main_window(window),
-        settings.save_splitter(sp),
         settings.save_query_results_view(results_list),
         settings.save_last_query(query_editor),
     ))
 
-    sp.addWidget(query_editor)
-    sp.addWidget(query_results)
-    sp.addWidget(tabview)
-    sp.setCollapsible(0, False)
-    sp.setCollapsible(1, False)
-    sp.setCollapsible(2, False)
-    sp.setStretchFactor(0, 0)
-    sp.setStretchFactor(1, 10)
-    sp.setStretchFactor(2, 2)
-    sp.setSizes([50, 300, 100])
-
     settings.restore_main_window(window)
-    settings.restore_splitter(sp)
     settings.restore_query_results_view(results_list)
     settings.restore_last_query(query_editor)
 

@@ -1,0 +1,10 @@
+QMainWindow::separator {
+    border: none;
+    width: 6px;
+    height: 6px;
+}
+
+QDockWidget::title {
+    text-align: center;
+    background: transparent;
+}
