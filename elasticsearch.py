@@ -6,12 +6,12 @@ import shlex
 class Query(object):
 
     def __init__(self, raw=""):
-        raw = json.loads("\n".join(
+        query_dict = json.loads("\n".join(
             line.split("#", 1)[0]
             for line in raw.split("\n")
         ))
         self.data = dict(
-            query=raw,
+            query=query_dict,
             sort=dict(),
             size=100,
         )
@@ -24,8 +24,12 @@ class Query(object):
         self.data["from"] = from_
         return self
 
-    def sort(self, field, dir):
-        self.data["sort"] = {field: dir}
+    def sort(self, field, dir_):
+        self.data["sort"] = {field: dir_}
+        field_exists = {"exists": {"field": field}}
+        filters = self.data["query"]["filtered"]["filter"]
+        if field_exists not in filters:
+            filters.append(field_exists)
         return self
 
     @classmethod
