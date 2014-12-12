@@ -163,8 +163,9 @@ class ResultFieldWidget(QPlainTextEdit):
         self.setPlainText(data.get(self.field))
 
 
-def run_query_handler(query_editor, model):
+def run_query_handler(query_editor, model, status_bar):
     def handler():
+        status_bar.showMessage("running query...")
         query_text = unicode(query_editor.toPlainText())
         query = elasticsearch.Query(query_text)
         model.set_query(query)
@@ -209,7 +210,6 @@ if __name__ == '__main__':
         | Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
     window.addDockWidget(Qt.BottomDockWidgetArea, dock_widget)
 
-
     results_list.selectionModel().currentChanged.connect(
         partial(result_detail_view.update, results_list.model())
     )
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     )
 
     window.run_query_shortcut.activated.connect(
-        run_query_handler(query_editor, results_list.model())
+        run_query_handler(query_editor, results_list.model(), query_results.status_bar)
     )
 
     window.closeSignal.connect(lambda:(
