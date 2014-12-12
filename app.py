@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.setContentsMargins(4, 4, 4, 4)
         splitter = QSplitter()
         splitter.setOrientation(Qt.Vertical)
         self.setCentralWidget(splitter)
