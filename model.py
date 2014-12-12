@@ -96,10 +96,11 @@ class QueryResultListModel(QAbstractItemModel):
         request = QNetworkRequest(self.service_url)
         request.setHeader(QNetworkRequest.ContentTypeHeader, "application/json")
         reply = self.qnetwork.post(request, self.query_to_bytearray())
-        reply.readyRead.connect(partial(self._update_result, reply))
+        reply.finished.connect(partial(self._update_result, reply))
 
     def _update_result(self, reply):
-        data = reply.readAll().data()
+        n = reply.bytesAvailable()
+        data = reply.read(n)
         self.beginResetModel()
         self.result = elasticsearch.Result(data)
         self.reset()
