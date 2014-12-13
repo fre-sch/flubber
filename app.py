@@ -165,8 +165,22 @@ class ResultDetailWidget(QPlainTextEdit):
         if self.field is None:
             self.setPlainText(data)
         else:
-            data = json.loads(data)
-            self.setPlainText(data.get(self.field, ""))
+            data = str(json.loads(data).get(self.field, ""))
+            self.setPlainText(data)
+
+    @property
+    def dock_title(self):
+        if self.field:
+            return "Field '{}'".format(field)
+        else:
+            return "Details"
+
+    @property
+    def dock_name(self):
+        if self.field:
+            return "details_dock_{}".format(field)
+        else:
+            return "details_dock"
 
 
 def run_query_handler(query_editor, model, status_bar):
@@ -178,30 +192,37 @@ def run_query_handler(query_editor, model, status_bar):
     return handler
 
 
-def show_details(window, list_view):
+class DockManager(object):
+    def __init__(self, window):
+        self.window = window
+        self.docks = dict()
+
+    def add(self, widget, title, name,
+            allowed_areas=Qt.AllDockWidgetAreas,
+            dock_area=Qt.BottomDockWidgetArea):
+        if name in self.docks:
+            return
+
+        dock_widget = QDockWidget(title, self.window)
+        dock_widget.setObjectName(name)
+        dock_widget.setWidget(widget)
+        dock_widget.setAllowedAreas(allowed_areas)
+        self.docks[name] = dock_widget
+
+        if not self.window.restoreDockWidget(dock_widget):
+            self.window.addDockWidget(dock_area, dock_widget)
+
+
+def show_details(dock_manager, list_view):
     model = list_view.model()
     selection = list_view.selectionModel()
 
     def handler(action):
         field = action.data()
-        if field:
-            title = "Field '{}'".format(field)
-            name = "details_dock_{}".format(field)
-        else:
-            title = "Details"
-            name = "details_dock"
-
         view = ResultDetailWidget(field)
         view.update(model, list_view.currentIndex(), None)
         selection.currentChanged.connect(partial(view.update, model))
-
-        dock_widget = QDockWidget(title, window)
-        dock_widget.setObjectName(name)
-        dock_widget.setWidget(view)
-        dock_widget.setAllowedAreas(
-            Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
-            | Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
-        window.addDockWidget(Qt.BottomDockWidgetArea, dock_widget)
+        dock_manager.add(view, view.dock_title, view.dock_name)
 
     return handler
 
@@ -213,25 +234,23 @@ if __name__ == '__main__':
         app.setStyleSheet(fp.read())
 
     window = MainWindow()
+    dock_manager = DockManager(window)
     query_results = ResultsWidget()
     results_list = query_results.list_view
     window.setCentralWidget(query_results)
 
     results_list.item_menu.triggered.connect(
-        show_details(window, results_list)
+        show_details(dock_manager, results_list)
     )
 
     query_editor = QueryEditor()
-    dock_widget = QDockWidget("Query", window)
-    dock_widget.setObjectName("query_editor")
-    dock_widget.setWidget(query_editor)
-    dock_widget.setAllowedAreas(
-        Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
-        | Qt.BottomDockWidgetArea | Qt.TopDockWidgetArea)
-    window.addDockWidget(Qt.TopDockWidgetArea, dock_widget)
+    dock_manager.add(query_editor, "Query", "query_editor",
+                     dock_area=Qt.TopDockWidgetArea)
 
     window.run_query_shortcut.activated.connect(
-        run_query_handler(query_editor, results_list.model(), query_results.status_bar)
+        run_query_handler(query_editor,
+                          results_list.model(),
+                          query_results.status_bar)
     )
 
     window.closeSignal.connect(lambda:(
