@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtNetwork import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtNetwork import *
 import elasticsearch
 from functools import partial
 import json
@@ -99,8 +99,10 @@ class QueryResultListModel(QAbstractItemModel):
         data = reply.read(n)
         self.beginResetModel()
         self.result = elasticsearch.Result(data)
-        self.reset()
+        #self.reset()
         self.endResetModel()
 
     def query_to_bytearray(self):
-        return QByteArray.fromRawData(json.dumps(self.query.data))
+        json_data = json.dumps(self.query.data)
+        print(json_data)
+        return QByteArray(json_data)

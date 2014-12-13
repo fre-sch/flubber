@@ -26,10 +26,10 @@ class Query(object):
 
     def sort(self, field, dir_):
         self.data["sort"] = {field: dir_}
-        field_exists = {"exists": {"field": field}}
-        filters = self.data["query"]["filtered"]["filter"]
-        if field_exists not in filters:
-            filters.append(field_exists)
+        # field_exists = {"exists": {"field": field}}
+        # filters = self.data["query"]["filtered"]["filter"]
+        # if field_exists not in filters:
+        #     filters.append(field_exists)
         return self
 
     @classmethod
@@ -58,7 +58,11 @@ class Query(object):
 class Result(object):
 
     def __init__(self, data):
-        self.data = json.loads(data)
+        if data:
+            self.data = json.loads(data.decode("UTF-8"))
+        else:
+            self.data = {}
+
         self.fields = self.get_all_fields(self.data)
 
     @property

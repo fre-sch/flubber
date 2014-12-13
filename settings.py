@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from collections import OrderedDict
 from contextlib import contextmanager
 
@@ -28,10 +28,8 @@ class Settings(QSettings):
 def restore_main_window(window):
     s = Settings()
     with s.group_("MainWindow"):
-        window.restoreState(s.value("state", "").toByteArray())
-        window.resize(
-            s.value("size", QSize(600, 400)).toSize()
-        )
+        window.restoreState(s.value("state", ""))
+        window.resize(s.value("size", QSize(600, 400)))
 
 
 def save_main_window(window):
@@ -70,7 +68,7 @@ def save_query_results_view(view):
 def restore_last_query(editor):
     s = Settings()
     with s.group_("last_query"):
-        text = s.value("text").toString()
+        text = s.value("text")
         editor.setPlainText(text)
 
 
