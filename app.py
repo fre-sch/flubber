@@ -171,14 +171,14 @@ class ResultDetailWidget(QPlainTextEdit):
     @property
     def dock_title(self):
         if self.field:
-            return "Field '{}'".format(field)
+            return "Field '{}'".format(self.field)
         else:
             return "Details"
 
     @property
     def dock_name(self):
         if self.field:
-            return "details_dock_{}".format(field)
+            return "details_dock_{}".format(self.field)
         else:
             return "details_dock"
 
