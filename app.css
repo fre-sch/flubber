@@ -8,3 +8,7 @@ QDockWidget::title {
     text-align: center;
     background: transparent;
 }
+
+QStatusBar {
+    background: transparent;
+}
