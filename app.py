@@ -12,17 +12,6 @@ from functools import partial
 import json
 
 
-class FontFixer(object):
-
-    font = QFont()
-    font.setStyleHint(QFont.Monospace)
-    font.setFamily("Menlo, 'Bitstream Vera Sans Mono'")
-
-    @classmethod
-    def set_monospace_font(self, widget):
-        widget.setFont(self.font)
-
-
 class OSXItemActivationFix(object):
 
     def keyPressEvent(self, event):
@@ -70,7 +59,6 @@ class ResultListView(OSXItemActivationFix, QTreeView):
         self.setSortingEnabled(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_item_menu)
-        FontFixer.set_monospace_font(self)
 
         model = QueryResultListModel("http://localhost:9200")
         self.setModel(model)
@@ -162,7 +150,7 @@ class QueryEditor(QPlainTextEdit):
 
     def __init__(self):
         super(QueryEditor, self).__init__()
-        FontFixer.set_monospace_font(self)
+        self.setObjectName("query_editor")
 
 
 class ResultDetailWidget(QPlainTextEdit):
@@ -171,7 +159,6 @@ class ResultDetailWidget(QPlainTextEdit):
         super(ResultDetailWidget, self).__init__()
         self.field = field
         self.setReadOnly(True)
-        FontFixer.set_monospace_font(self)
 
     def update(self, model, current, previous):
         data = model.data(current, Qt.EditRole)

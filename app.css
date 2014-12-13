@@ -4,11 +4,19 @@ QMainWindow::separator {
     height: 6px;
 }
 
+
 QDockWidget::title {
     text-align: center;
     background: transparent;
 }
 
+
 QStatusBar {
     background: transparent;
+}
+
+QPlainTextEdit {
+    font-family: Menlo;
+    color: #839496;
+    background-color: #002b36;
 }
