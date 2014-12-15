@@ -45,10 +45,9 @@ def restore_query_results_view(view):
         with s.group_("header"):
             for field in s.child_groups():
                 with s.group_(field):
-                    size = max(100, s.value("size", type=int))
+                    size = s.value("size", type=int)
                     hidden = s.value("hidden", type=bool)
                     view.field_config[field] = size, hidden
-
 
 
 def save_query_results_view(view):
