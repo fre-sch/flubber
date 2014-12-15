@@ -58,14 +58,17 @@ class ResultListView(OSXItemActivationFix, QTreeView):
         self.setUniformRowHeights(1)
         self.setSortingEnabled(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.show_item_menu)
+        self.customContextMenuRequested.connect(
+            partial(self.show_menu, self.item_menu))
 
         model = QueryResultListModel("http://localhost:9200")
         self.setModel(model)
 
         header = self.header()
+        header.setMinimumSectionSize(self.default_column_size)
         header.setContextMenuPolicy(Qt.CustomContextMenu)
-        header.customContextMenuRequested.connect(self.show_header_menu)
+        header.customContextMenuRequested.connect(
+            partial(self.show_menu, self.header_menu))
         model.modelReset.connect(self.restore_colums)
         model.modelReset.connect(self.init_header_menu)
         model.modelReset.connect(self.init_item_menu)
@@ -100,9 +103,9 @@ class ResultListView(OSXItemActivationFix, QTreeView):
             action.toggled.connect(self.toggle_column(i, field))
             self.header_menu.addAction(action)
 
-    def show_header_menu(self, pos):
+    def show_menu(self, menu, pos):
         global_pos = self.mapToGlobal(pos)
-        self.header_menu.exec_(global_pos)
+        menu.exec_(global_pos)
 
     def init_item_menu(self):
         self.item_menu.clear()
@@ -117,10 +120,6 @@ class ResultListView(OSXItemActivationFix, QTreeView):
             action = QAction("Show '{}'".format(field), self.item_menu)
             action.setData(field)
             self.item_menu.addAction(action)
-
-    def show_item_menu(self, pos):
-        global_pos = self.mapToGlobal(pos)
-        self.item_menu.exec_(global_pos)
 
 
 class ResultsWidget(QWidget):
