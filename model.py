@@ -53,7 +53,7 @@ class QueryResultListModel(QAbstractItemModel):
             try:
                 return data.split("\n")[0]
             except AttributeError:
-                return None
+                return data
 
         elif role == Qt.EditRole:
             return self.result.get_text(index.row())
@@ -79,6 +79,11 @@ class QueryResultListModel(QAbstractItemModel):
         self.query = query
         self.fetch_result()
 
+    def set_result(self, result):
+        self.beginResetModel()
+        self.result = result
+        self.endResetModel()
+
     def fetch_result(self):
         if not self.query:
             return
@@ -90,19 +95,17 @@ class QueryResultListModel(QAbstractItemModel):
             self.query.sort(sort_field, sort_dir)
 
         request = QNetworkRequest(self.service_url)
-        request.setHeader(QNetworkRequest.ContentTypeHeader, "application/json")
-        reply = self.qnetwork.post(request, self.query_to_bytearray())
-        reply.finished.connect(partial(self._update_result, reply))
+        request.setHeader(QNetworkRequest.ContentTypeHeader,
+                          "application/json")
+        reply = self.qnetwork.post(request, self.query_data())
+        reply.finished.connect(partial(self.reply_finished, reply))
 
-    def _update_result(self, reply):
+    def reply_finished(self, reply):
         n = reply.bytesAvailable()
         data = reply.read(n)
-        self.beginResetModel()
-        self.result = elasticsearch.Result(data)
-        #self.reset()
-        self.endResetModel()
+        self.set_result(elasticsearch.Result(data))
 
-    def query_to_bytearray(self):
+    def query_data(self):
         json_data = json.dumps(self.query.data)
         print(json_data)
         return QByteArray(json_data)
