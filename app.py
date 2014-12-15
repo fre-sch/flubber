@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
 
 class ResultListView(OSXItemActivationFix, QTreeView):
 
+    default_column_size = 50
     default_columns_visible = [
         "asctime",
         "levelname",
@@ -78,15 +79,18 @@ class ResultListView(OSXItemActivationFix, QTreeView):
         model = header.model()
         for i in range(model.columnCount()):
             field = model.headerData(i, Qt.Horizontal)
-            default = (100, field not in self.default_columns_visible)
+            default = (self.default_column_size,
+                       field not in self.default_columns_visible)
             size, hidden = self.field_config.get(field, default)
+            size = max(self.default_column_size, size)
             header.setSectionHidden(i, hidden)
             header.resizeSection(i, size)
 
     def toggle_column(self, i, field):
         def handler(toggled):
             self.header().setSectionHidden(i, not toggled)
-            size = int(max(50, self.header().sectionSize(i)))
+            size = max(self.default_column_size,
+                       self.header().sectionSize(i))
             self.field_config[field] = (size, not toggled)
         return handler
 
@@ -147,6 +151,9 @@ class ResultsWidget(QWidget):
 
 class QueryEditor(QPlainTextEdit):
 
+    dock_title = "Query"
+    dock_name = "query_editor"
+
     def __init__(self):
         super(QueryEditor, self).__init__()
         self.setObjectName("query_editor")
@@ -196,34 +203,40 @@ class DockManager(object):
         self.window = window
         self.docks = dict()
 
-    def add(self, widget, title, name,
+    def add(self, widget,
             allowed_areas=Qt.AllDockWidgetAreas,
             dock_area=Qt.BottomDockWidgetArea):
-        if name in self.docks:
+        if widget.dock_name in self.docks:
+            self.docks[widget.dock_name].setVisible(True)
             return
 
-        dock_widget = QDockWidget(title, self.window)
-        dock_widget.setObjectName(name)
+        dock_widget = QDockWidget(widget.dock_title, self.window)
+        dock_widget.setObjectName(widget.dock_name)
         dock_widget.setWidget(widget)
         dock_widget.setAllowedAreas(allowed_areas)
-        self.docks[name] = dock_widget
+        self.docks[widget.dock_name] = dock_widget
 
         if not self.window.restoreDockWidget(dock_widget):
             self.window.addDockWidget(dock_area, dock_widget)
+        else:
+            dock_widget.setVisible(True)
 
 
-def show_details(dock_manager, list_view):
+def show_details(dock_manager, list_view, action):
     model = list_view.model()
     selection = list_view.selectionModel()
+    field = action.data()
+    view = ResultDetailWidget(field)
+    view.update(model, list_view.currentIndex(), None)
+    selection.currentChanged.connect(partial(view.update, model))
+    dock_manager.add(view)
 
-    def handler(action):
-        field = action.data()
-        view = ResultDetailWidget(field)
-        view.update(model, list_view.currentIndex(), None)
-        selection.currentChanged.connect(partial(view.update, model))
-        dock_manager.add(view, view.dock_title, view.dock_name)
 
-    return handler
+def copy_item_value(clipboard, model, index):
+    print("index {}, {}".format(index.row(), index.column()))
+    print("header", model.headerData(index.column(), None))
+    data = model.data(index)
+    clipboard.setText(str(data) if data is not None else "")
 
 
 if __name__ == '__main__':
@@ -239,12 +252,13 @@ if __name__ == '__main__':
     window.setCentralWidget(query_results)
 
     results_list.item_menu.triggered.connect(
-        show_details(dock_manager, results_list)
+        partial(show_details, dock_manager, results_list)
     )
+    results_list.doubleClicked.connect(
+        partial(copy_item_value, app.clipboard(), results_list.model()))
 
     query_editor = QueryEditor()
-    dock_manager.add(query_editor, "Query", "query_editor",
-                     dock_area=Qt.TopDockWidgetArea)
+    dock_manager.add(query_editor, dock_area=Qt.TopDockWidgetArea)
 
     window.run_query_shortcut.activated.connect(
         run_query_handler(query_editor,
