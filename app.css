@@ -16,7 +16,8 @@ QStatusBar {
 }
 
 QPlainTextEdit {
-    font-family: Menlo;
+    font-family: 'Menlo', monospace;
+    font-size: 14pt;
     color: #839496;
     background-color: #002b36;
 }
