@@ -20,4 +20,11 @@ QPlainTextEdit {
     font-size: 14pt;
     color: #839496;
     background-color: #002b36;
+    selection-color: #657b83;
+    selection-background-color: #fdf6e3;
+}
+
+LineNumberArea {
+    color: #586e75;
+    background-color: #073642;
 }

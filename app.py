@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from collections import OrderedDict
 from model import QueryResultListModel
+from code_editor import CodeEditor
 import settings
 import elasticsearch
 from functools import partial
@@ -149,7 +150,7 @@ class ResultsWidget(QWidget):
         )
 
 
-class QueryEditor(QPlainTextEdit):
+class QueryEditor(CodeEditor):
 
     dock_title = "Query"
     dock_name = "query_editor"
@@ -159,7 +160,7 @@ class QueryEditor(QPlainTextEdit):
         self.setObjectName("query_editor")
 
 
-class ResultDetailWidget(QPlainTextEdit):
+class ResultDetailWidget(CodeEditor):
 
     def __init__(self, field=None):
         super(ResultDetailWidget, self).__init__()
