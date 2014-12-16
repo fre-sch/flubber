@@ -83,6 +83,6 @@ def restore_detail_docks(init_detail_dock):
         init_detail_dock(field)
 
 
-def save_detail_docks(active_detail_docks):
+def save_detail_docks(dock_manager):
     s = Settings()
-    s.setValue("detail_docks", active_detail_docks)
+    s.setValue("detail_docks", dock_manager.save_state())

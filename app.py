@@ -231,19 +231,25 @@ class DockManager(object):
         else:
             dock_widget.setVisible(True)
 
+    def save_state(self):
+        visible_detail_docks = []
+        for dock in self.docks.values():
+            if hasattr(dock.widget(), "field") and dock.isVisible():
+                visible_detail_docks.append(dock.widget().field)
+        return visible_detail_docks
 
-def _show_details(dock_manager, list_view, active_detail_docks, field):
+
+def _show_details(dock_manager, list_view, field):
     model = list_view.model()
     selection = list_view.selectionModel()
     view = ResultDetailWidget(field)
     view.update(model, list_view.currentIndex(), None)
     selection.currentChanged.connect(partial(view.update, model))
     dock_manager.add(view)
-    active_detail_docks.append(field)
 
 
-def show_details(dock_manager, list_view, active_detail_docks, action):
-    _show_details(dock_manager, list_view, active_detail_docks, action.data())
+def show_details(dock_manager, list_view, action):
+    _show_details(dock_manager, list_view, action.data())
 
 
 def copy_item_value(clipboard, model, index):
@@ -272,7 +278,7 @@ if __name__ == '__main__':
         partial(show_query_error, query_results.status_bar)
     )
     results_list.item_menu.triggered.connect(
-        partial(show_details, dock_manager, results_list, active_detail_docks)
+        partial(show_details, dock_manager, results_list)
     )
     results_list.doubleClicked.connect(
         partial(copy_item_value, app.clipboard(), results_list.model()))
@@ -290,14 +296,14 @@ if __name__ == '__main__':
         settings.save_main_window(window),
         settings.save_query_results_view(results_list),
         settings.save_last_query(query_editor),
-        settings.save_detail_docks(active_detail_docks),
+        settings.save_detail_docks(dock_manager),
     ))
 
     settings.restore_main_window(window)
     settings.restore_query_results_view(results_list)
     settings.restore_last_query(query_editor)
     settings.restore_detail_docks(
-        partial(_show_details, dock_manager, results_list, active_detail_docks))
+        partial(_show_details, dock_manager, results_list))
 
     window.show()
     sys.exit(app.exec_())
