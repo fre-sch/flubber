@@ -234,8 +234,6 @@ def show_details(dock_manager, list_view, action):
 
 
 def copy_item_value(clipboard, model, index):
-    print("index {}, {}".format(index.row(), index.column()))
-    print("header", model.headerData(index.column(), None))
     data = model.data(index)
     clipboard.setText(str(data) if data is not None else "")
 
