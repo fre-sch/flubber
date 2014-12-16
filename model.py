@@ -13,6 +13,8 @@ class QueryResultListModel(QAbstractItemModel):
         Qt.DescendingOrder: "desc",
     }
 
+    query_error = pyqtSignal(str)
+
     def __init__(self, service_url):
         super(QueryResultListModel, self).__init__()
         self.service_url = QUrl(service_url + "/_search")
@@ -94,16 +96,22 @@ class QueryResultListModel(QAbstractItemModel):
             sort_dir = self.sort_dir[sort_dir]
             self.query.sort(sort_field, sort_dir)
 
+        query_data = self.query_data()
         request = QNetworkRequest(self.service_url)
         request.setHeader(QNetworkRequest.ContentTypeHeader,
                           "application/json")
-        reply = self.qnetwork.post(request, self.query_data())
-        reply.finished.connect(partial(self.reply_finished, reply))
+        reply = self.qnetwork.post(request, query_data)
+        reply.error.connect(partial(self.request_failed, reply))
+        reply.finished.connect(partial(self.request_finished, reply))
 
-    def reply_finished(self, reply):
-        n = reply.bytesAvailable()
-        data = reply.read(n)
-        self.set_result(elasticsearch.Result(data))
+    def request_finished(self, reply):
+        if reply.error() == QNetworkReply.NoError:
+            n = reply.bytesAvailable()
+            data = reply.read(n)
+            self.set_result(elasticsearch.Result(data))
+
+    def request_failed(self, reply):
+         self.query_error.emit(reply.errorString())
 
     def query_data(self):
         json_data = json.dumps(self.query.data)

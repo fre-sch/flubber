@@ -194,8 +194,12 @@ def run_query_handler(query_editor, model, status_bar):
     def handler():
         status_bar.showMessage("running query...")
         query_text = query_editor.toPlainText()
-        query = elasticsearch.Query(query_text)
-        model.set_query(query)
+        try:
+            query = elasticsearch.Query(query_text)
+        except Exception as e:
+            status_bar.showMessage("query error: {}".format(str(e)))
+        else:
+            model.set_query(query)
     return handler
 
 
@@ -238,6 +242,10 @@ def copy_item_value(clipboard, model, index):
     clipboard.setText(str(data) if data is not None else "")
 
 
+def show_query_error(status_bar, error):
+    status_bar.showMessage("query error: {}".format(error))
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
@@ -250,6 +258,9 @@ if __name__ == '__main__':
     results_list = query_results.list_view
     window.setCentralWidget(query_results)
 
+    results_list.model().query_error.connect(
+        partial(show_query_error, query_results.status_bar)
+    )
     results_list.item_menu.triggered.connect(
         partial(show_details, dock_manager, results_list)
     )
