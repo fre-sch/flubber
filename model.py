@@ -107,5 +107,4 @@ class QueryResultListModel(QAbstractItemModel):
 
     def query_data(self):
         json_data = json.dumps(self.query.data)
-        print(json_data)
         return QByteArray(json_data)
