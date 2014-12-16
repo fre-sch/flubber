@@ -8,7 +8,6 @@ class LineNumberArea(QWidget):
     def __init__(self, editor):
         super(LineNumberArea, self).__init__(editor)
         self.setObjectName("LineNumberArea")
-        self.editor = editor
         self.fontMetrics = self.editor.fontMetrics()
         self.font_width =  self.fontMetrics.width("9")
         self.font_height = self.fontMetrics.height()
@@ -17,8 +16,12 @@ class LineNumberArea(QWidget):
         self.editor.updateRequest.connect(self.on_editor_update)
         self.update_editor_margins()
 
+    @property
+    def editor(self):
+        return self.parentWidget()
+
     def sizeHint(self):
-        return QSize(self.editor.lineNumberAreaWidth(), 0)
+        return QSize(self.calcWidth(), 0)
 
     def calcWidth(self):
         digits = 1
