@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from collections import OrderedDict
 from contextlib import contextmanager
 
@@ -28,10 +28,8 @@ class Settings(QSettings):
 def restore_main_window(window):
     s = Settings()
     with s.group_("MainWindow"):
-        window.restoreState(s.value("state", "").toByteArray())
-        window.resize(
-            s.value("size", QSize(600, 400)).toSize()
-        )
+        window.restoreState(s.value("state", ""))
+        window.resize(s.value("size", QSize(600, 400)))
 
 
 def save_main_window(window):
@@ -47,10 +45,9 @@ def restore_query_results_view(view):
         with s.group_("header"):
             for field in s.child_groups():
                 with s.group_(field):
-                    size = max(100, s.value("size", type=int))
+                    size = s.value("size", type=int)
                     hidden = s.value("hidden", type=bool)
                     view.field_config[field] = size, hidden
-
 
 
 def save_query_results_view(view):
@@ -70,7 +67,7 @@ def save_query_results_view(view):
 def restore_last_query(editor):
     s = Settings()
     with s.group_("last_query"):
-        text = s.value("text").toString()
+        text = s.value("text")
         editor.setPlainText(text)
 
 
@@ -78,3 +75,14 @@ def save_last_query(editor):
     s = Settings()
     with s.group_("last_query"):
         s.setValue("text", editor.toPlainText())
+
+
+def restore_detail_docks(init_detail_dock):
+    s = Settings()
+    for field in s.value("detail_docks", []):
+        init_detail_dock(field)
+
+
+def save_detail_docks(active_detail_docks):
+    s = Settings()
+    s.setValue("detail_docks", active_detail_docks)

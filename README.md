@@ -3,9 +3,14 @@ flubber
 
 GUI for querying elasticsearch
 
-Requires PyQt4, which is a pain to install with virtualenv/pip. Just use your
-OS' distributor packages, or homebrew on OS X. If you're on Windows... you're
-on your own.
+
+Requirements
+------------
+- Python 3
+- PyQt5
+  Which is a pain to install with virtualenv/pip. Just use your
+  OS' distributor packages, or homebrew on OS X. If you're on Windows...
+  you're on your own.
 
 
 2014-12-10

@@ -4,7 +4,27 @@ QMainWindow::separator {
     height: 6px;
 }
 
+
 QDockWidget::title {
     text-align: center;
     background: transparent;
+}
+
+
+QStatusBar {
+    background: transparent;
+}
+
+QPlainTextEdit {
+    font-family: 'Menlo', monospace;
+    font-size: 14pt;
+    color: #839496;
+    background-color: #002b36;
+    selection-color: #657b83;
+    selection-background-color: #fdf6e3;
+}
+
+LineNumberArea {
+    color: #586e75;
+    background-color: #073642;
 }
