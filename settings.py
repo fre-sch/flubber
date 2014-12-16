@@ -75,3 +75,14 @@ def save_last_query(editor):
     s = Settings()
     with s.group_("last_query"):
         s.setValue("text", editor.toPlainText())
+
+
+def restore_detail_docks(init_detail_dock):
+    s = Settings()
+    for field in s.value("detail_docks", []):
+        init_detail_dock(field)
+
+
+def save_detail_docks(active_detail_docks):
+    s = Settings()
+    s.setValue("detail_docks", active_detail_docks)

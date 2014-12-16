@@ -172,7 +172,12 @@ class ResultDetailWidget(CodeEditor):
         if self.field is None:
             self.setPlainText(data)
         else:
-            data = str(json.loads(data).get(self.field, ""))
+            try:
+                data = json.loads(data)
+            except Exception:
+                data = ""
+            else:
+                data = str(data.get(self.field, ""))
             self.setPlainText(data)
 
     @property
@@ -227,14 +232,18 @@ class DockManager(object):
             dock_widget.setVisible(True)
 
 
-def show_details(dock_manager, list_view, action):
+def _show_details(dock_manager, list_view, active_detail_docks, field):
     model = list_view.model()
     selection = list_view.selectionModel()
-    field = action.data()
     view = ResultDetailWidget(field)
     view.update(model, list_view.currentIndex(), None)
     selection.currentChanged.connect(partial(view.update, model))
     dock_manager.add(view)
+    active_detail_docks.append(field)
+
+
+def show_details(dock_manager, list_view, active_detail_docks, action):
+    _show_details(dock_manager, list_view, active_detail_docks, action.data())
 
 
 def copy_item_value(clipboard, model, index):
@@ -254,6 +263,7 @@ if __name__ == '__main__':
 
     window = MainWindow()
     dock_manager = DockManager(window)
+    active_detail_docks = []
     query_results = ResultsWidget()
     results_list = query_results.list_view
     window.setCentralWidget(query_results)
@@ -262,7 +272,7 @@ if __name__ == '__main__':
         partial(show_query_error, query_results.status_bar)
     )
     results_list.item_menu.triggered.connect(
-        partial(show_details, dock_manager, results_list)
+        partial(show_details, dock_manager, results_list, active_detail_docks)
     )
     results_list.doubleClicked.connect(
         partial(copy_item_value, app.clipboard(), results_list.model()))
@@ -280,11 +290,14 @@ if __name__ == '__main__':
         settings.save_main_window(window),
         settings.save_query_results_view(results_list),
         settings.save_last_query(query_editor),
+        settings.save_detail_docks(active_detail_docks),
     ))
 
     settings.restore_main_window(window)
     settings.restore_query_results_view(results_list)
     settings.restore_last_query(query_editor)
+    settings.restore_detail_docks(
+        partial(_show_details, dock_manager, results_list, active_detail_docks))
 
     window.show()
     sys.exit(app.exec_())
