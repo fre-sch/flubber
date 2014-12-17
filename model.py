@@ -109,6 +109,10 @@ class QueryResultListModel(QAbstractItemModel):
             n = reply.bytesAvailable()
             data = reply.read(n)
             self.set_result(elasticsearch.Result(data))
+        else:
+            n = reply.bytesAvailable()
+            data = reply.read(n)
+            print(data)
 
     def request_failed(self, reply):
          self.query_error.emit(reply.errorString())
