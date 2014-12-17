@@ -11,10 +11,10 @@ class Query(object):
             for line in raw.split("\n")
         ))
         self.data = dict(
-            query=query_dict,
             sort=dict(),
             size=100,
         )
+        self.data.update(query_dict)
 
     def size(self, size):
         self.data["size"] = size
